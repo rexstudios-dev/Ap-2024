@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Producto</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .wave {
+      animation: wave 3s linear infinite;
+    }
+
+    @keyframes wave {
+      0% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(10px);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div id="loading" class="fixed inset-0 flex items-center justify-center bg-gray-800 text-white z-50">
+    <div class="text-4xl font-bold">
+      <span class="wave">B</span>
+      <span class="wave" style="animation-delay: 0.2s">y</span>
+      <span class="wave" style="animation-delay: 0.4s"> </span>
+      <span class="wave" style="animation-delay: 0.6s">R</span>
+      <span class="wave" style="animation-delay: 0.8s">e</span>
+      <span class="wave" style="animation-delay: 1s">x</span>
+      <span class="wave" style="animation-delay: 1.2s"> </span>
+      <span class="wave" style="animation-delay: 1.4s">D</span>
+      <span class="wave" style="animation-delay: 1.6s">e</span>
+      <span class="wave" style="animation-delay: 1.8s">v</span>
+    </div>
+  </div>
+
+  <div id="content" class="container mx-auto px-4 py-8 hidden">
+    <h1 class="text-3xl font-bold mb-4">Agregar Producto</h1>
+    <form id="producto-form" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="nombre">Nombre:</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" id="nombre" name="nombre" required>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="precio">Precio:</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="number" id="precio" name="precio" step="0.01" required>
+      </div>
+      <div class="mb-6">
+        <label class="block text-gray-700 font-bold mb-2" for="descripcion">Descripción:</label>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="descripcion" name="descripcion"></textarea>
+      </div>
+      <div class="flex items-center justify-between">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Agregar Producto</button>
+      </div>
+    </form>
+
+    <h2 class="text-2xl font-bold mb-4">Productos</h2>
+    <ul id="productos-lista" class="bg-white shadow-md rounded px-8 pt-6 pb-8"></ul>
+  </div>
+
+  <script>
+    const formulario = document.getElementById('producto-form');
+    const productosList = document.getElementById('productos-lista');
+    const loadingScreen = document.getElementById('loading');
+    const content = document.getElementById('content');
+
+    function obtenerProductos() {
+      fetch('/productos')
+        .then(response => response.json())
+        .then(data => {
+          productosList.innerHTML = '';
+          data.forEach(producto => {
+            const li = document.createElement('li');
+            li.classList.add('py-2', 'border-b', 'border-gray-200');
+            li.textContent = `${producto.nombre} - $${producto.precio} - ${producto.descripcion}`;
+            productosList.appendChild(li);
+          });
+        })
+        .catch(error => console.error(error));
+    }
+
+    function showContent() {
+      loadingScreen.classList.add('hidden');
+      content.classList.remove('hidden');
+    }
+
+    setTimeout(showContent, 5000);
+    obtenerProductos();
+
+    formulario.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('nombre').value;
+      const precio = document.getElementById('precio').value;
+      const descripcion = document.getElementById('descripcion').value;
+
+      const producto = { nombre, precio, descripcion };
+
+      fetch('/agregar-producto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(producto)
+      })
+      .then(response => response.text())
+      .then(data => {
+        console.log(data);
+        formulario.reset();
+        obtenerProductos();
+      })
+      .catch(error => console.error(error));
+    });
+  </script>
+</body>
+</html>
